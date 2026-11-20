@@ -26,7 +26,7 @@ Time-box: 2–3 hours of build. Judgement and clarity matter more than feature c
 | GET `/api/health` | `{ status: "ok" }` (also used as the Docker Compose healthcheck) |
 | GET `/api/products/featured` | The 5 owner-chosen "top rated" products |
 | GET `/api/products/search?q=term` | Products with a word in title, description or category that starts with the term (case-insensitive); 400 if empty |
-| GET `/api/products/:id` | One product; 400 if `id` is not a positive integer (`ParseProductIdPipe`); 404 if unknown |
+| GET `/api/products/:id` | One product; 400 if `id` is not a positive integer (`ProductIdParams` DTO, validated as text); 404 if unknown |
 | GET `/api/categories` | List of category names |
 | GET `/api/categories/:category` | `{ category, topRated: Product[], others: Product[] }`; 404 if unknown. `:category` is URL-encoded (names contain spaces and apostrophes, e.g. `men's clothing`) |
 | POST `/api/enquiries` | Validates, emails the sales inbox, returns `{ message: "Thank you…" }` (201) |

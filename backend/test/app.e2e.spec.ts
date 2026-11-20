@@ -101,7 +101,7 @@ describe('API (e2e, data source and email faked)', () => {
       await api().get('/api/products/999').expect(404);
     });
 
-    it.each(['abc', '0', '-1', '1.5'])('answers 400 for id "%s"', async (id) => {
+    it.each(['abc', '0', '-1', '1.5', '0x10', '1e1', '007', '%205', '1.0'])('answers 400 for id "%s"', async (id) => {
       await api().get(`/api/products/${id}`).expect(400);
     });
   });

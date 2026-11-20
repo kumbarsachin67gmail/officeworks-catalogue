@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { ParseProductIdPipe } from './parse-product-id.pipe.js';
 import type { CategoryView, Product } from './product.js';
+import { ProductIdParams } from './product-id.params.js';
 import { ProductsService } from './products.service.js';
 import { SearchQueryDto } from './search-query.dto.js';
 
@@ -20,8 +20,8 @@ export class ProductsController {
   }
 
   @Get(':id')
-  getById(@Param('id', ParseProductIdPipe) id: number): Promise<Product> {
-    return this.products.getById(id);
+  getById(@Param() params: ProductIdParams): Promise<Product> {
+    return this.products.getById(Number(params.id));
   }
 }
 
