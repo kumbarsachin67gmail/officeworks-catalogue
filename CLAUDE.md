@@ -3,7 +3,7 @@
 ## What this is
 A proof-of-concept product catalogue (take-home assignment) that must grow into a real product, not be thrown away.
 - Client: React + TypeScript (Vite) in `frontend/`
-- Backend: Node.js + TypeScript + NestJS in `backend/`
+- Backend: Node.js + TypeScript + NestJS 12 (ES modules) in `backend/`
 - Product data: Fake Store API (https://fakestoreapi.com), reached ONLY from the backend
 - No database in this PoC (see PLAN.md for why)
 
@@ -30,7 +30,7 @@ Read PLAN.md for the full plan, assumptions and build order before making change
 - Organise by feature (`products/`, `enquiries/`), not by type. Keep functions small and clearly named.
 
 ## Tests
-- Backend: Jest + Supertest + `@nestjs/testing`. Unit-test services with a fake `ProductRepository` and fake `EmailSender`. Never hit the real Fake Store API in tests.
+- Backend: Vitest + Supertest + `@nestjs/testing` (NestJS 12 is ESM-only; Vitest is what its official starter uses). Tests live in `backend/test/`. Unit-test services with a fake `ProductRepository` and fake `EmailSender`. Never hit the real Fake Store API in tests.
 - Frontend: Vitest + React Testing Library. Mock the API client; test what the user sees.
 - Run `npm test` in `backend/` and `frontend/` before every commit.
 
