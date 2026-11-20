@@ -64,8 +64,8 @@ frontend/src/
   api/client.ts         (only file that calls the backend)
   types/product.ts
   hooks/useAsync.ts     (one loading/error pattern)
-  components/ Layout, ProductTile, ProductGrid, EnquiryForm, Status
-  pages/ HomePage, CategoryPage, SearchPage, ProductPage
+  components/ Layout, ProductTile, ProductGrid, EnquiryForm, Status, format.ts (price/rating/URL helpers)
+  pages/ HomePage, CategoryPage, SearchPage, ProductPage, NotFoundPage
   styles.css, App.tsx, main.tsx
 frontend/test/
 frontend/nginx.conf     (serves the app, proxies /api to the backend)

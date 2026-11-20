@@ -1,0 +1,403 @@
+/*
+ * All look-and-feel lives here. A designer can restyle the app by changing
+ * the variables below (and these classes) without touching any component.
+ */
+:root {
+  --color-brand: #1d4ed8;
+  --color-brand-dark: #1e3a8a;
+  --color-text: #1f2937;
+  --color-text-muted: #4b5563;
+  --color-background: #f9fafb;
+  --color-surface: #ffffff;
+  --color-border: #e5e7eb;
+  --color-error: #b91c1c;
+  --color-error-bg: #fef2f2;
+  --color-success: #15803d;
+  --color-success-bg: #f0fdf4;
+  --color-focus: #f59e0b;
+
+  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-size-base: 1rem;
+  --font-size-small: 0.875rem;
+  --font-size-large: 1.25rem;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2.5rem;
+
+  --radius: 0.5rem;
+  --shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+  --content-width: 72rem;
+  --tile-min-width: 13rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  color: var(--color-text);
+  background: var(--color-background);
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  color: var(--color-brand);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+h1 {
+  margin: 0 0 var(--space-2);
+  font-size: 1.75rem;
+  line-height: 1.25;
+}
+
+h2 {
+  margin: var(--space-5) 0 var(--space-3);
+  font-size: var(--font-size-large);
+}
+
+.capitalise {
+  text-transform: capitalize;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--space-3);
+  top: -3rem;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  z-index: 10;
+}
+
+.skip-link:focus {
+  top: var(--space-2);
+}
+
+/* Header, search and category navigation */
+.header {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.header__inner,
+.categories ul,
+.main,
+.footer {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding-left: var(--space-3);
+  padding-right: var(--space-3);
+}
+
+.header__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-3);
+}
+
+.brand {
+  font-size: var(--font-size-large);
+  font-weight: 700;
+  color: var(--color-brand-dark);
+  text-decoration: none;
+}
+
+.search {
+  display: flex;
+  gap: var(--space-2);
+  flex: 1 1 18rem;
+  max-width: 32rem;
+}
+
+.search input {
+  flex: 1;
+}
+
+.categories ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  list-style: none;
+  padding-bottom: var(--space-3);
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.categories a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  text-transform: capitalize;
+}
+
+.categories a:hover,
+.categories a.active {
+  color: var(--color-brand);
+  text-decoration: underline;
+}
+
+.main {
+  padding-top: var(--space-4);
+  padding-bottom: var(--space-5);
+  min-height: 60vh;
+}
+
+.footer {
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+}
+
+.lead {
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-3);
+}
+
+/* Form controls and buttons */
+input,
+textarea {
+  font: inherit;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  width: 100%;
+}
+
+input[aria-invalid='true'],
+textarea[aria-invalid='true'] {
+  border-color: var(--color-error);
+}
+
+.button {
+  font: inherit;
+  font-weight: 600;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-brand);
+  border-radius: var(--radius);
+  background: var(--color-brand);
+  color: #fff;
+  cursor: pointer;
+}
+
+.button:hover {
+  background: var(--color-brand-dark);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.button--secondary {
+  background: var(--color-surface);
+  color: var(--color-brand);
+}
+
+.button--large {
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--font-size-large);
+}
+
+/* Product grid and tiles */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--tile-min-width), 1fr));
+  gap: var(--space-3);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  color: inherit;
+  text-decoration: none;
+}
+
+.tile:hover {
+  border-color: var(--color-brand);
+}
+
+.tile__image {
+  aspect-ratio: 1;
+  margin-bottom: var(--space-3);
+}
+
+.tile__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.tile__title {
+  font-size: var(--font-size-base);
+  margin: 0 0 var(--space-2);
+  flex: 1;
+}
+
+.tile__price {
+  font-weight: 700;
+  margin: 0;
+}
+
+.tile__rating {
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* Product page */
+.product {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.product__image {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+}
+
+.product__image img {
+  margin: 0 auto;
+  max-height: 28rem;
+  object-fit: contain;
+}
+
+.product__category {
+  margin: 0 0 var(--space-1);
+}
+
+.product__price {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: var(--space-2) 0 0;
+}
+
+.product__rating {
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-3);
+}
+
+.product__description {
+  margin: 0 0 var(--space-4);
+}
+
+.product__enquiry h2 {
+  margin-top: 0;
+}
+
+@media (max-width: 48rem) {
+  .product {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Enquiry form */
+.enquiry {
+  display: grid;
+  gap: var(--space-3);
+  max-width: 32rem;
+}
+
+.field {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.field label {
+  font-weight: 600;
+}
+
+.field__optional {
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.field__error {
+  margin: 0;
+  color: var(--color-error);
+  font-size: var(--font-size-small);
+}
+
+.enquiry .button {
+  justify-self: start;
+}
+
+/* Status, notices and empty states */
+.status,
+.empty {
+  color: var(--color-text-muted);
+}
+
+.status--error,
+.notice--error {
+  color: var(--color-error);
+  background: var(--color-error-bg);
+  border: 1px solid currentColor;
+  border-radius: var(--radius);
+  padding: var(--space-3);
+  margin: 0;
+}
+
+.status--error p {
+  margin: 0 0 var(--space-2);
+}
+
+.notice--success {
+  color: var(--color-success);
+  background: var(--color-success-bg);
+  border: 1px solid currentColor;
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4);
+  max-width: 32rem;
+}
+
+.notice--success h3 {
+  margin: 0 0 var(--space-1);
+}
+
+.notice--success p {
+  margin: 0;
+}
