@@ -1,0 +1,36 @@
+# Serves the built React app and forwards /api to the backend, so the browser
+# only ever talks to this one origin (no CORS needed).
+# ${BACKEND_URL} is filled in at container start (default http://backend:3000).
+server {
+    listen 8080;
+    server_name _;
+    root /usr/share/nginx/html;
+    server_tokens off;
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    # Product images come from Fake Store's image host; everything else is same-origin.
+    add_header Content-Security-Policy "default-src 'self'; img-src 'self' https://fakestoreapi.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'" always;
+
+    location /api/ {
+        proxy_pass ${BACKEND_URL};
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 30s;
+        client_max_body_size 16k;
+    }
+
+    # Vite puts content-hashed files in /assets, so they can be cached for a long time.
+    location /assets/ {
+        expires 1y;
+        try_files $uri =404;
+    }
+
+    # Every other path is a client-side route: serve index.html, never cached.
+    location / {
+        expires -1;
+        try_files $uri /index.html;
+    }
+}

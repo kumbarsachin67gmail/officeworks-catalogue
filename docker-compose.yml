@@ -1,0 +1,37 @@
+# One command to run everything: docker compose up --build
+#   App:   http://localhost:8080
+#   Email: http://localhost:8025 (Mailpit catches every enquiry email)
+# Optional: copy .env.example to .env to change settings. No .env is needed.
+
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:8080"
+    environment:
+      BACKEND_URL: http://backend:3000
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    # Not published to the host: the browser reaches it only through nginx at /api.
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      PORT: 3000
+      # In Docker, email goes to the bundled Mailpit unless .env sets a real SMTP relay.
+      SMTP_HOST: ${SMTP_HOST:-mailpit}
+      SMTP_PORT: ${SMTP_PORT:-1025}
+    depends_on:
+      - mailpit
+    restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit:v1.34.0
+    ports:
+      - "8025:8025"
+    restart: unless-stopped
