@@ -44,9 +44,9 @@ Tests: backend 68 → 102, frontend 25 → 31.
 | silent-failure | Health endpoint should report "degraded" when serving stale data | Deferred to "next day". The age is now logged; changing health semantics needs a monitoring decision |
 | test-analyzer | Prefer regex matches over exact UI copy in tests | Kept exact copy: the text users see is part of the behaviour |
 
-## Proposed changes to CLAUDE.md (need the owner's approval)
+## Changes to CLAUDE.md (applied after the owner's approval)
 
-The comment-analyzer also suggested edits to CLAUDE.md. CLAUDE.md is the agent's instruction file, so these were not applied without approval:
+The comment-analyzer also suggested edits to CLAUDE.md. CLAUDE.md is the agent's instruction file, so these were held for my approval, then applied:
 
 1. Line 13: say that API calls go through `/api`, while product images load from the URLs the data source returns.
 2. Line 28: say errors are `{ statusCode, message, error }`, with `message` an array for validation errors.
