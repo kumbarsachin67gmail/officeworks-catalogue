@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { TopRatedPolicy } from '../../src/products/top-rated.policy.js';
 import { makeProduct, sampleCatalogue } from '../fakes/products.js';
 
-const ids = (products: { id: number }[]) => products.map((product) => product.id);
+const ids = (products: readonly { id: number }[]) => products.map((product) => product.id);
 
 function policy(featuredProductIds: number[], categoryTopRatedCount = 3): TopRatedPolicy {
   return new TopRatedPolicy({ topRated: { featuredProductIds, categoryTopRatedCount } });

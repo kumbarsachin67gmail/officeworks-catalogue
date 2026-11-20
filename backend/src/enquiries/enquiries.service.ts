@@ -1,11 +1,17 @@
 import { Inject, Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
 import { APP_CONFIG, type AppConfig } from '../config/app-config.js';
+import { describeError } from '../describe-error.js';
 import type { Product } from '../products/product.js';
 import { ProductsService } from '../products/products.service.js';
 import type { CreateEnquiryDto } from './create-enquiry.dto.js';
 import { EMAIL_SENDER, type EmailMessage, type EmailSender } from './email-sender.js';
 
 export const THANK_YOU_MESSAGE = 'Thank you for your enquiry. Our sales team will be in touch soon.';
+
+/** Response body of POST /api/enquiries. Mirrored by EnquiryResponse in frontend/src/types/product.ts. */
+export interface EnquiryResult {
+  message: string;
+}
 
 @Injectable()
 export class EnquiriesService {
@@ -21,14 +27,13 @@ export class EnquiriesService {
   }
 
   /** Emails the enquiry to the sales inbox. 404 if the product is unknown, 503 if sending fails. */
-  async submit(enquiry: CreateEnquiryDto): Promise<{ message: string }> {
+  async submit(enquiry: CreateEnquiryDto): Promise<EnquiryResult> {
     const product = await this.products.getById(enquiry.productId);
     const email = buildEnquiryEmail(enquiry, product, this.salesInbox);
     try {
       await this.emailSender.send(email);
     } catch (error) {
-      const reason = error instanceof Error ? error.message : String(error);
-      this.logger.error(`Enquiry email for product ${product.id} was not sent: ${reason}`);
+      this.logger.error(`Enquiry email for product ${product.id} was not sent: ${describeError(error)}`);
       throw new ServiceUnavailableException("We couldn't send your enquiry right now. Please try again shortly.");
     }
     return { message: THANK_YOU_MESSAGE };

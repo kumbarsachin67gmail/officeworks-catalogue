@@ -3,7 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { loadAppConfig } from '../../src/config/app-config.js';
 import { FakeStoreRepository, RETRY_AFTER_FAILURE_MS } from '../../src/products/fake-store.repository.js';
 import type { HttpFetch } from '../../src/products/http-fetch.js';
-import { makeProduct } from '../fakes/products.js';
+import { makeProduct, sampleCatalogue } from '../fakes/products.js';
+import { describeProductRepositoryContract } from './product-repository.contract.js';
 
 const TTL_MS = 60_000;
 const TIMEOUT_MS = 5_000;
@@ -68,10 +69,28 @@ describe('FakeStoreRepository', () => {
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 
-  it('answers 503 when Fake Store fails and nothing is cached', async () => {
-    const repository = new FakeStoreRepository(config, vi.fn<HttpFetch>().mockRejectedValue(new Error('ECONNREFUSED')));
+  it('answers 503 when Fake Store fails and nothing is cached, logging the underlying cause', async () => {
+    const networkError = new TypeError('fetch failed', {
+      cause: Object.assign(new Error('getaddrinfo ENOTFOUND store.test'), { code: 'ENOTFOUND' }),
+    });
+    const repository = new FakeStoreRepository(config, vi.fn<HttpFetch>().mockRejectedValue(networkError));
 
     await expect(repository.findById(1)).rejects.toBeInstanceOf(ServiceUnavailableException);
+    expect(Logger.prototype.error).toHaveBeenCalledWith(
+      expect.stringContaining('fetch failed <- caused by: getaddrinfo ENOTFOUND store.test [ENOTFOUND]'),
+    );
+  });
+
+  it('recovers on the next request once Fake Store is back after a failed first load', async () => {
+    const fetch = vi
+      .fn<HttpFetch>()
+      .mockRejectedValueOnce(new Error('ECONNREFUSED'))
+      .mockImplementation(async () => okResponse(catalogue));
+    const repository = new FakeStoreRepository(config, fetch);
+
+    await expect(repository.findById(1)).rejects.toBeInstanceOf(ServiceUnavailableException);
+    expect(await repository.findById(1)).toEqual(catalogue[0]);
+    expect(fetch).toHaveBeenCalledTimes(2);
   });
 
   it.each([
@@ -105,7 +124,7 @@ describe('FakeStoreRepository', () => {
 
     expect(await repository.findById(2)).toEqual(catalogue[1]);
     expect(fetch).toHaveBeenCalledTimes(2);
-    expect(Logger.prototype.warn).toHaveBeenCalledWith(expect.stringContaining('serving cached products'));
+    expect(Logger.prototype.warn).toHaveBeenCalledWith(expect.stringContaining(`serving cached products loaded ${TTL_MS / 1000}s ago`));
 
     await repository.findById(2);
     expect(fetch).toHaveBeenCalledTimes(2);
@@ -123,3 +142,7 @@ describe('FakeStoreRepository', () => {
     expect(Logger.prototype.warn).toHaveBeenCalledWith(expect.stringContaining('Skipped 2'));
   });
 });
+
+describeProductRepositoryContract('FakeStoreRepository', () =>
+  new FakeStoreRepository(config, async () => okResponse(sampleCatalogue)),
+);

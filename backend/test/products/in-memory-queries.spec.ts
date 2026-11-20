@@ -1,15 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { listCategories, matchesSearchTerm, search } from '../../src/products/in-memory-queries.js';
+import { InMemoryProductRepository } from '../fakes/in-memory-product.repository.js';
 import { makeProduct, sampleCatalogue } from '../fakes/products.js';
+import { describeProductRepositoryContract } from './product-repository.contract.js';
 
-const ids = (products: { id: number }[]) => products.map((product) => product.id);
+const ids = (products: readonly { id: number }[]) => products.map((product) => product.id);
 
 describe('search', () => {
   it('matches the start of a word, so "men" finds men\'s clothing but not women\'s', () => {
-    const results = search(sampleCatalogue, 'men');
-
-    expect(results.length).toBeGreaterThan(0);
-    expect(results.every((product) => product.category === "men's clothing")).toBe(true);
+    expect(ids(search(sampleCatalogue, 'men'))).toEqual([1, 2, 3, 4]);
   });
 
   it('ignores case', () => {
@@ -46,3 +45,5 @@ describe('listCategories', () => {
     expect(listCategories(sampleCatalogue)).toEqual(['electronics', 'jewelery', "men's clothing", "women's clothing"]);
   });
 });
+
+describeProductRepositoryContract('InMemoryProductRepository (test fake)', () => new InMemoryProductRepository(sampleCatalogue));

@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { APP_CONFIG, type AppConfig } from '../config/app-config.js';
-import type { Product } from './product.js';
+import type { CategoryView, Product } from './product.js';
 
 /**
  * The single place that decides what "top rated" means.
@@ -32,7 +32,7 @@ export class TopRatedPolicy {
   }
 
   /** Splits one category's products into top rated and the rest. No product appears in both. */
-  splitCategory(products: readonly Product[]): { topRated: Product[]; others: Product[] } {
+  splitCategory(products: readonly Product[]): Omit<CategoryView, 'category'> {
     const ownerPicks = this.orderFeatured(products);
     const pickedIds = new Set(ownerPicks.map((product) => product.id));
     const fillCount = Math.max(0, this.categoryTopRatedCount - ownerPicks.length);

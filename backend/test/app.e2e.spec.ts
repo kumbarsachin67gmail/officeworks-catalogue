@@ -8,13 +8,14 @@ import { AppModule } from '../src/app.module.js';
 import { APP_CONFIG, loadAppConfig } from '../src/config/app-config.js';
 import { EMAIL_SENDER } from '../src/enquiries/email-sender.js';
 import { THANK_YOU_MESSAGE } from '../src/enquiries/enquiries.service.js';
+import { HTTP_FETCH, type HttpFetch } from '../src/products/http-fetch.js';
 import { PRODUCT_REPOSITORY } from '../src/products/product.repository.js';
 import { setupApp } from '../src/setup-app.js';
 import { InMemoryProductRepository } from './fakes/in-memory-product.repository.js';
 import { sampleCatalogue } from './fakes/products.js';
 import { RecordingEmailSender } from './fakes/recording-email-sender.js';
 
-const ids = (products: { id: number }[]) => products.map((product) => product.id);
+const ids = (products: readonly { id: number }[]) => products.map((product) => product.id);
 
 describe('API (e2e, data source and email faked)', () => {
   let app: NestExpressApplication;
@@ -95,6 +96,9 @@ describe('API (e2e, data source and email faked)', () => {
     it('returns the product', async () => {
       const { body } = await api().get('/api/products/5').expect(200);
       expect(body).toMatchObject({ id: 5, title: 'Silver Dragon Bracelet', category: 'jewelery' });
+      // Pins the JSON contract that frontend/src/types/product.ts mirrors.
+      expect(Object.keys(body).sort()).toEqual(['category', 'description', 'id', 'image', 'price', 'rating', 'title']);
+      expect(Object.keys(body.rating).sort()).toEqual(['count', 'rate']);
     });
 
     it('answers 404 for an unknown product', async () => {
@@ -153,6 +157,17 @@ describe('API (e2e, data source and email faked)', () => {
       expect(emailSender.sent).toHaveLength(0);
     });
 
+    it('returns field messages written for people, which the client shows as-is', async () => {
+      const { body } = await api().post('/api/enquiries').send({ ...valid, name: '', email: 'x' }).expect(400);
+      expect(body.message).toEqual(expect.arrayContaining(['Enter your name', 'Enter a valid email address']));
+    });
+
+    it('answers 503 and sends nothing when the product source is down', async () => {
+      repository.unavailable = true;
+      await api().post('/api/enquiries').send(valid).expect(503);
+      expect(emailSender.sent).toHaveLength(0);
+    });
+
     it('answers 404 for an unknown product', async () => {
       await api().post('/api/enquiries').send({ ...valid, productId: 999 }).expect(404);
       expect(emailSender.sent).toHaveLength(0);
@@ -174,5 +189,49 @@ describe('API (e2e, data source and email faked)', () => {
   it('does not reveal the framework in headers', async () => {
     const response = await api().get('/api/health');
     expect(response.headers['x-powered-by']).toBeUndefined();
+  });
+});
+
+describe('API (e2e, production wiring: real FakeStoreRepository, only the network faked)', () => {
+  let app: NestExpressApplication;
+  let fakeStoreUp = true;
+  const fetch: HttpFetch = async (input) => {
+    if (!fakeStoreUp) throw new TypeError('fetch failed');
+    expect(input).toBe('https://store.test/products');
+    return new Response(JSON.stringify(sampleCatalogue), { status: 200 });
+  };
+
+  beforeAll(async () => {
+    const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+      .overrideProvider(APP_CONFIG)
+      .useValue(loadAppConfig({ FAKE_STORE_BASE_URL: 'https://store.test', PRODUCT_CACHE_TTL_MS: '0' }))
+      .overrideProvider(HTTP_FETCH)
+      .useValue(fetch)
+      .overrideProvider(EMAIL_SENDER)
+      .useValue(new RecordingEmailSender())
+      .compile();
+    moduleRef.useLogger(false);
+    app = moduleRef.createNestApplication<NestExpressApplication>();
+    setupApp(app);
+    await app.init();
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  it('serves products fetched through the real repository', async () => {
+    fakeStoreUp = true;
+    const { body } = await request(app.getHttpServer()).get('/api/products/5').expect(200);
+    expect(body.title).toBe('Silver Dragon Bracelet');
+  });
+
+  it('keeps serving the last good catalogue when a refresh fails', async () => {
+    // TTL 0: the cache is stale at once, so this request tries Fake Store again and fails.
+    fakeStoreUp = false;
+    vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+    const { body } = await request(app.getHttpServer()).get('/api/products/5').expect(200);
+    expect(body.title).toBe('Silver Dragon Bracelet');
+    expect(Logger.prototype.warn).toHaveBeenCalledWith(expect.stringContaining('serving cached products'));
   });
 });

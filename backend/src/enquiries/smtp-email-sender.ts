@@ -10,16 +10,19 @@ export class SmtpEmailSender implements EmailSender {
   private readonly from: string;
 
   constructor(@Inject(APP_CONFIG) config: AppConfig) {
-    const { smtpHost, smtpPort, smtpSecure, smtpUser, smtpPass, fromAddress } = config.email;
-    this.from = fromAddress;
+    const { host, port, secure, auth } = config.smtp;
+    this.from = config.email.fromAddress;
     this.transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: smtpSecure,
-      auth: smtpUser ? { user: smtpUser, pass: smtpPass } : undefined,
-      connectionTimeout: 10_000,
-      greetingTimeout: 10_000,
-      socketTimeout: 10_000,
+      host,
+      port,
+      secure,
+      auth,
+      // Kept well under nginx's 30 s proxy_read_timeout, so a slow SMTP server
+      // gives the customer our 503 rather than a proxy timeout while the email
+      // may still be sent in the background.
+      connectionTimeout: 5_000,
+      greetingTimeout: 5_000,
+      socketTimeout: 15_000,
     });
   }
 

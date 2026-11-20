@@ -6,6 +6,8 @@ import { TopRatedPolicy } from './top-rated.policy.js';
 @Injectable()
 export class ProductsService {
   private readonly logger = new Logger(ProductsService.name);
+  /** Last missing-id list warned about, so a bad FEATURED_PRODUCT_IDS warns once, not on every visit. */
+  private lastMissingWarning = '';
 
   constructor(
     @Inject(PRODUCT_REPOSITORY) private readonly repository: ProductRepository,
@@ -15,11 +17,12 @@ export class ProductsService {
   async getFeatured(): Promise<Product[]> {
     const ids = this.topRated.featuredProductIds;
     const featured = this.topRated.orderFeatured(await this.repository.findByIds(ids));
-    if (featured.length < ids.length) {
-      const found = new Set(featured.map((product) => product.id));
-      const missing = ids.filter((id) => !found.has(id));
-      this.logger.warn(`Featured product ids not found and skipped: ${missing.join(', ')}`);
+    const found = new Set(featured.map((product) => product.id));
+    const missing = ids.filter((id) => !found.has(id)).join(', ');
+    if (missing && missing !== this.lastMissingWarning) {
+      this.logger.warn(`Featured product ids not found and skipped: ${missing}`);
     }
+    this.lastMissingWarning = missing;
     return featured;
   }
 

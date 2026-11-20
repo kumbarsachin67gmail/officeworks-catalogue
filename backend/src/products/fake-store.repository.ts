@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
 import { APP_CONFIG, type AppConfig } from '../config/app-config.js';
+import { describeError } from '../describe-error.js';
 import { HTTP_FETCH, type HttpFetch } from './http-fetch.js';
 import * as queries from './in-memory-queries.js';
 import type { Product } from './product.js';
@@ -24,6 +25,7 @@ export class FakeStoreRepository implements ProductRepository {
   private readonly logger = new Logger(FakeStoreRepository.name);
   private readonly settings: AppConfig['fakeStore'];
   private catalogue: Product[] | undefined;
+  private loadedAt = 0;
   private expiresAt = 0;
   private inFlight: Promise<Product[]> | undefined;
 
@@ -66,12 +68,14 @@ export class FakeStoreRepository implements ProductRepository {
     try {
       const products = await this.fetchCatalogue();
       this.catalogue = products;
-      this.expiresAt = Date.now() + this.settings.cacheTtlMs;
+      this.loadedAt = Date.now();
+      this.expiresAt = this.loadedAt + this.settings.cacheTtlMs;
       return products;
     } catch (error) {
-      const reason = error instanceof Error ? error.message : String(error);
+      const reason = describeError(error);
       if (this.catalogue) {
-        this.logger.warn(`Fake Store refresh failed, serving cached products: ${reason}`);
+        const ageSeconds = Math.round((Date.now() - this.loadedAt) / 1000);
+        this.logger.warn(`Fake Store refresh failed, serving cached products loaded ${ageSeconds}s ago: ${reason}`);
         this.expiresAt = Date.now() + RETRY_AFTER_FAILURE_MS;
         return this.catalogue;
       }
