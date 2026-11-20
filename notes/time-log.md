@@ -9,5 +9,6 @@ Times are IST. Split matches what the brief asks for: planning, building, testin
 | 2026-11-20 | ~13:25 | ~13:40 | Building + testing | Frontend: pages, API client, enquiry form, styles, 21 tests, browser check of all five acceptance criteria |
 | 2026-11-20 | ~13:40 | ~13:50 | Building + reviewing | ESLint architecture rules (both apps), fixes from lint findings, GitHub Actions CI |
 | 2026-11-20 | ~13:50 | ~14:00 | Building + testing | Docker: Dockerfiles, nginx with security headers, Compose with Mailpit; browser check through nginx |
+| 2026-11-20 | ~14:00 | ~14:10 | Testing | End-to-end verification from a fresh clone (Docker and no-Docker), failure cases, 3 fixes |
 
 Note: this block includes installing Docker, which is machine setup rather than solution work. Adjust the start time if you began earlier.
