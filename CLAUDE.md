@@ -32,7 +32,8 @@ Read PLAN.md for the full plan, assumptions and build order before making change
 ## Tests
 - Backend: Vitest + Supertest + `@nestjs/testing` (NestJS 12 is ESM-only; Vitest is what its official starter uses). Tests live in `backend/test/`. Unit-test services with a fake `ProductRepository` and fake `EmailSender`. Never hit the real Fake Store API in tests.
 - Frontend: Vitest + React Testing Library. Mock the API client; test what the user sees.
-- Run `npm test` in `backend/` and `frontend/` before every commit.
+- Run `npm run lint` and `npm test` in `backend/` and `frontend/` before every commit. CI (`.github/workflows/ci.yml`) runs lint, typecheck, tests and build for both apps on every push and PR.
+- The architecture rules above are enforced by ESLint (`no-restricted-imports` / `no-restricted-globals` / `no-restricted-syntax` in each app's `eslint.config.js`). Don't silence them; change the design or discuss it.
 
 ## Working agreement
 - Plan before coding; show the plan and wait for approval on anything not already in PLAN.md.
