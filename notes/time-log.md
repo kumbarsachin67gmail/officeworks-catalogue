@@ -10,6 +10,7 @@ Times are IST. Split matches what the brief asks for: planning, building, testin
 | 2026-11-20 | ~13:40 | ~13:50 | Building + reviewing | ESLint architecture rules (both apps), fixes from lint findings, GitHub Actions CI |
 | 2026-11-20 | ~13:50 | ~14:00 | Building + testing | Docker: Dockerfiles, nginx with security headers, Compose with Mailpit; browser check through nginx |
 | 2026-11-20 | ~14:00 | ~14:10 | Testing | End-to-end verification from a fresh clone (Docker and no-Docker), failure cases, 3 fixes |
-| 2026-11-20 | ~14:10 | ~14:25 | Reviewing | AI review pass (6 reviewers), ~20 fixes with tests, 5 rejected/deferred; history rewrite to drop co-author trailers |
+| 2026-11-20 | ~14:10 | ~14:28 | Reviewing | AI review pass (6 reviewers), ~20 fixes with tests, 5 rejected/deferred; history rewrite to drop co-author trailers; CLAUDE.md edits |
+| 2026-11-20 | ~14:28 | ~14:35 | Docs | README, DECISIONS.md, AI_USAGE.md (drafted by Claude from the notes, checked against the code) |
 
-Note: this block includes installing Docker, which is machine setup rather than solution work. Adjust the start time if you began earlier.
+Note: the first row includes installing Docker, which is machine setup rather than solution work. Its start time (~11:20) is an estimate from when the session began.
