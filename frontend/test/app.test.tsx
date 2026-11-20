@@ -68,6 +68,21 @@ describe('Home page', () => {
   });
 });
 
+describe('Category menu', () => {
+  it('offers a retry when categories fail to load, and recovers', async () => {
+    mockedApi.getCategories.mockRejectedValueOnce(new ApiError('The catalogue is temporarily unavailable.', 503));
+    const user = renderAt('/');
+
+    const nav = await screen.findByRole('navigation', { name: 'Categories' });
+    expect(nav).toHaveTextContent('Categories are unavailable.');
+    await user.click(within(nav).getByRole('button', { name: 'Retry' }));
+
+    // The menu is re-rendered after the retry, so look it up again.
+    const reloaded = await screen.findByRole('navigation', { name: 'Categories' });
+    expect(await within(reloaded).findByRole('link', { name: 'electronics' })).toBeInTheDocument();
+  });
+});
+
 describe('Category page', () => {
   it('opens from a category link and shows top rated and more products', async () => {
     mockedApi.getCategory.mockResolvedValue({

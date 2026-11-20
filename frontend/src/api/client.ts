@@ -66,7 +66,10 @@ async function friendlyMessage(response: Response): Promise<string> {
       return serverMessage ?? 'Please check what you entered and try again.';
     case 404:
       return "Sorry, we couldn't find that.";
+    // 502/504 come from a proxy when the backend is down or slow: same meaning for the user.
+    case 502:
     case 503:
+    case 504:
       return serverMessage ?? 'This is temporarily unavailable. Please try again shortly.';
     default:
       return 'Something went wrong on our side. Please try again.';

@@ -66,8 +66,20 @@ function SearchBar({ initialTerm }: { initialTerm: string }) {
 
 function CategoryNav() {
   const categories = useAsync(() => api.getCategories(), []);
-  // Navigation is secondary: if categories fail to load, the page still works without it.
-  if (categories.status !== 'success') return null;
+  if (categories.status === 'loading') return null;
+  // Navigation is secondary: if it fails, the page still works and the menu can be retried.
+  if (categories.status === 'error') {
+    return (
+      <nav className="categories" aria-label="Categories">
+        <p className="categories__error">
+          Categories are unavailable.{' '}
+          <button type="button" className="link-button" onClick={categories.retry}>
+            Retry
+          </button>
+        </p>
+      </nav>
+    );
+  }
 
   return (
     <nav className="categories" aria-label="Categories">

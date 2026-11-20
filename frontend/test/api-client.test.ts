@@ -71,6 +71,14 @@ describe('api client', () => {
     expect((await errorFrom(api.getFeaturedProducts())).message).toBe('Products are unavailable right now.');
   });
 
+  it.each([502, 504])('treats a %s from the proxy as temporarily unavailable', async (status) => {
+    fetchMock.mockResolvedValue(new Response('<html><h1>Bad Gateway</h1></html>', { status }));
+
+    const error = await errorFrom(api.getFeaturedProducts());
+
+    expect(error.message).toBe('This is temporarily unavailable. Please try again shortly.');
+  });
+
   it('never shows server internals for a 500', async () => {
     fetchMock.mockResolvedValue(new Response('TypeError: x is undefined\n    at Object.<anonymous>', { status: 500 }));
 
