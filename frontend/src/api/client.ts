@@ -4,8 +4,10 @@ import type { CategoryView, EnquiryRequest, EnquiryResponse, Product } from '../
  * The only file that talks to the backend. Pages and components call these
  * functions and never use fetch directly.
  *
- * Requests go to /api on the same origin (Vite or nginx forwards them to the
- * backend), so the browser never calls Fake Store or any other source.
+ * API calls go to /api on the same origin (Vite or nginx forwards them to the
+ * backend), so no CORS is needed and the browser never calls Fake Store's API.
+ * Product images still load from the image URLs the backend returns (Fake
+ * Store's image host today); see DECISIONS.md.
  */
 
 const API_BASE = '/api';
@@ -51,13 +53,21 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (!response.ok) {
     throw new ApiError(await friendlyMessage(response), response.status);
   }
-  return (await response.json()) as T;
+  try {
+    return (await response.json()) as T;
+  } catch (error) {
+    // A 2xx that is not JSON means something between us and the backend answered.
+    console.error(`Unexpected non-JSON response from ${path}`, error);
+    throw new ApiError('We got an unexpected answer from the catalogue. Please try again.', response.status);
+  }
 }
 
 /**
  * Turns an error response into a message for people, never a stack trace.
- * The backend's 400 and 503 messages are written for users, so they are shown;
- * anything else gets a fixed message.
+ * The backend's 400 and 503 messages are written for users, so they are shown
+ * (nginx also answers its own JSON 503 when the backend is unreachable).
+ * 502/504 are treated like 503 in case another proxy sits in front.
+ * Anything else gets a fixed message.
  */
 async function friendlyMessage(response: Response): Promise<string> {
   const serverMessage = await readServerMessage(response);

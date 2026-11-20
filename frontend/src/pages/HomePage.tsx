@@ -9,7 +9,7 @@ export function HomePage() {
   return (
     <section aria-labelledby="featured-heading">
       <h1 id="featured-heading">Top rated</h1>
-      <p className="lead">Our five featured products.</p>
+      <p className="lead">Our featured products.</p>
       <Status state={featured} loadingLabel="Loading featured products…">
         {(products) => <ProductGrid products={products} emptyMessage="No featured products right now." />}
       </Status>

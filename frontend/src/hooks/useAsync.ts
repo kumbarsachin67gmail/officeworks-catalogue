@@ -44,5 +44,8 @@ function sameValues(a: DependencyList, b: DependencyList): boolean {
 }
 
 function toMessage(error: unknown): string {
-  return error instanceof ApiError ? error.message : 'Something went wrong. Please try again.';
+  if (error instanceof ApiError) return error.message;
+  // Not an expected API failure (likely a bug): keep the details for developers.
+  console.error(error);
+  return 'Something went wrong. Please try again.';
 }

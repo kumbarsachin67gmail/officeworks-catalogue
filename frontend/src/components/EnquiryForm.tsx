@@ -15,8 +15,9 @@ type SubmitState =
 const EMPTY: Values = { name: '', email: '', phone: '', message: '' };
 
 /**
- * Checks the same rules as the backend DTO so people get instant feedback.
- * The backend still validates everything; this is a convenience, not a guard.
+ * Mirrors the backend DTO's main rules so people get instant feedback.
+ * The backend still validates everything (its email check is stricter, and its
+ * messages are shown if it rejects something); this is a convenience, not a guard.
  */
 export function validateEnquiry(values: Values): Errors {
   const errors: Errors = {};
@@ -66,6 +67,7 @@ export function EnquiryForm({ productId, productTitle }: { productId: number; pr
       const response = await api.submitEnquiry(toRequest(productId, values));
       setSubmit({ status: 'sent', message: response.message });
     } catch (error) {
+      if (!(error instanceof ApiError)) console.error(error);
       const message = error instanceof ApiError ? error.message : 'Something went wrong. Please try again.';
       setSubmit({ status: 'failed', message });
     }

@@ -88,6 +88,16 @@ describe('api client', () => {
     expect(error.message).not.toContain('TypeError');
   });
 
+  it('turns a successful answer that is not JSON into a friendly error and logs it', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    fetchMock.mockResolvedValue(new Response('<!doctype html><html></html>', { status: 200 }));
+
+    const error = await errorFrom(api.getFeaturedProducts());
+
+    expect(error.message).toBe('We got an unexpected answer from the catalogue. Please try again.');
+    expect(consoleError).toHaveBeenCalled();
+  });
+
   it('gives a friendly message when the backend cannot be reached', async () => {
     fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));
 

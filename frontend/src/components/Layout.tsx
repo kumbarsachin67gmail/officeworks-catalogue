@@ -1,12 +1,14 @@
 import { useState, type FormEvent } from 'react';
-import { Link, NavLink, Outlet, useNavigate, useSearchParams } from 'react-router';
+import { Link, NavLink, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router';
 import { api } from '../api/client';
 import { useAsync } from '../hooks/useAsync';
+import { ErrorBoundary } from './ErrorBoundary';
 import { categoryPath } from './format';
 
 export function Layout() {
   const [searchParams] = useSearchParams();
   const urlTerm = searchParams.get('q') ?? '';
+  const { pathname } = useLocation();
 
   return (
     <>
@@ -24,7 +26,9 @@ export function Layout() {
         <CategoryNav />
       </header>
       <main id="main" className="main">
-        <Outlet />
+        <ErrorBoundary key={pathname}>
+          <Outlet />
+        </ErrorBoundary>
       </main>
       <footer className="footer">
         <p>Proof of concept. Product data from the Fake Store API.</p>

@@ -4,7 +4,17 @@ import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppRoutes } from '../src/App';
 import { api, ApiError } from '../src/api/client';
+import type { Product } from '../src/types/product';
 import { backpack, categories, cottonJacket, featured, rainJacket, slimShirt } from './fixtures';
+
+/** A promise the test resolves later, to control the order answers arrive in. */
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((done) => {
+    resolve = done;
+  });
+  return { promise, resolve };
+}
 
 // Pages are tested through the real UI with only the API client mocked.
 vi.mock('../src/api/client', async (importOriginal) => {
@@ -148,6 +158,34 @@ describe('Search', () => {
     expect(screen.getByRole('searchbox', { name: 'Search products' })).toHaveValue('');
   });
 
+  it('never shows results for an older search that answers late', async () => {
+    const jacketAnswer = deferred<Product[]>();
+    const shirtAnswer = deferred<Product[]>();
+    mockedApi.searchProducts.mockImplementation((term) => (term === 'jacket' ? jacketAnswer.promise : shirtAnswer.promise));
+    const user = renderAt('/search?q=jacket');
+
+    const box = screen.getByRole('searchbox', { name: 'Search products' });
+    await user.clear(box);
+    await user.type(box, 'shirt');
+    await user.click(screen.getByRole('button', { name: 'Search' }));
+    shirtAnswer.resolve([slimShirt]);
+    expect(await screen.findByText('1 product found')).toBeInTheDocument();
+
+    jacketAnswer.resolve([cottonJacket, rainJacket]);
+    await waitFor(() => expect(mockedApi.searchProducts).toHaveBeenCalledTimes(2));
+    await new Promise((settle) => setTimeout(settle, 0));
+
+    expect(screen.getByRole('heading', { name: 'Search results for “shirt”' })).toBeInTheDocument();
+    expect(screen.queryByText(cottonJacket.title)).not.toBeInTheDocument();
+  });
+
+  it('asks for a term when the search page is opened without one', () => {
+    renderAt('/search?q=%20');
+
+    expect(screen.getByText('Type a word in the search bar and press Search.')).toBeInTheDocument();
+    expect(mockedApi.searchProducts).not.toHaveBeenCalled();
+  });
+
   it('does not search for a blank term', async () => {
     const user = renderAt('/');
 
@@ -213,6 +251,42 @@ describe('Enquiry', () => {
     expect(screen.queryByRole('form')).not.toBeInTheDocument();
   });
 
+  it('sends trimmed details including the phone number', async () => {
+    mockedApi.submitEnquiry.mockResolvedValue({ message: 'Thank you for your enquiry.' });
+    const user = await openEnquiryForm();
+
+    await user.type(screen.getByLabelText('Name'), '  Asha Rao  ');
+    await user.type(screen.getByLabelText('Email'), ' asha@example.com ');
+    await user.type(screen.getByLabelText(/Phone/), ' 0400 000 000 ');
+    await user.click(screen.getByRole('button', { name: 'Send enquiry' }));
+
+    await screen.findByRole('heading', { name: 'Thank you' });
+    expect(mockedApi.submitEnquiry).toHaveBeenCalledWith({
+      productId: cottonJacket.id,
+      name: 'Asha Rao',
+      email: 'asha@example.com',
+      phone: '0400 000 000',
+    });
+  });
+
+  it('sends only once while a submission is in progress', async () => {
+    const answer = deferred<{ message: string }>();
+    mockedApi.submitEnquiry.mockReturnValue(answer.promise);
+    const user = await openEnquiryForm();
+
+    await user.type(screen.getByLabelText('Name'), 'Asha Rao');
+    await user.type(screen.getByLabelText('Email'), 'asha@example.com');
+    await user.click(screen.getByRole('button', { name: 'Send enquiry' }));
+
+    const sending = screen.getByRole('button', { name: 'Sending…' });
+    expect(sending).toBeDisabled();
+    await user.click(sending);
+    expect(mockedApi.submitEnquiry).toHaveBeenCalledTimes(1);
+
+    answer.resolve({ message: 'Thank you for your enquiry.' });
+    expect(await screen.findByRole('heading', { name: 'Thank you' })).toBeInTheDocument();
+  });
+
   it('shows what to fix and sends nothing when details are missing or wrong', async () => {
     const user = await openEnquiryForm();
 
@@ -241,6 +315,18 @@ describe('Enquiry', () => {
     expect(screen.getByLabelText('Name')).toHaveValue('Asha Rao');
     await waitFor(() => expect(screen.getByRole('button', { name: 'Send enquiry' })).toBeEnabled());
   });
+});
+
+it('shows a friendly message instead of a blank page if a page fails to render, and keeps the header', async () => {
+  const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  // A product without a rating breaks rendering: simulates a bug or an unexpected API shape.
+  mockedApi.getProduct.mockResolvedValue({ ...backpack, rating: undefined } as unknown as Product);
+  renderAt(`/products/${backpack.id}`);
+
+  expect(await screen.findByText('Something went wrong showing this page.')).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Reload' })).toBeInTheDocument();
+  expect(screen.getByRole('searchbox', { name: 'Search products' })).toBeInTheDocument();
+  expect(consoleError).toHaveBeenCalled();
 });
 
 it('shows a not-found page for unknown addresses', async () => {
