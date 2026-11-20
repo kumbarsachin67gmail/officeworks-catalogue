@@ -23,7 +23,7 @@ Time-box: 2–3 hours of build. Judgement and clarity matter more than feature c
 ## API (backend, prefix `/api`)
 | Method & path | Returns |
 |---|---|
-| GET `/api/health` | `{ status: "ok" }` (also used as the Docker Compose healthcheck) |
+| GET `/api/health` | `{ status: "ok" }` (used by the `HEALTHCHECK` in `backend/Dockerfile`, which Compose waits on) |
 | GET `/api/products/featured` | The 5 owner-chosen "top rated" products |
 | GET `/api/products/search?q=term` | Products with a word in title, description or category that starts with the term (case-insensitive); 400 if empty |
 | GET `/api/products/:id` | One product; 400 if `id` is not a positive integer (`ProductIdParams` DTO, validated as text); 404 if unknown |
@@ -37,12 +37,12 @@ Route order in `ProductsController`: `featured` and `search` are declared before
 1. **"Top rated" on the home page** = the 5 products the owner chose, set by `FEATURED_PRODUCT_IDS` in env (default `1,5,9,13,17`), shown in that order. Unknown IDs are skipped and logged as a warning.
 2. **Category "top rated"** = the owner's chosen products in that category first, then filled up to `CATEGORY_TOP_RATED_COUNT` (default 3) by highest customer rating. Ties are broken by rating count (higher first), then by product id (lower first), so the order is deterministic. Everything else in the category is listed under "More in this category". No product appears twice.
 3. **Search** is case-insensitive and done on the backend. A product matches if any word in its title, description or category *starts with* the term (so "men" matches "men's clothing" but not "women's clothing"). Plain substring matching would make "men" return women's clothing, which breaks "only see products that have text matching". Empty term = validation error. Max 100 characters. Regex special characters in the term are escaped.
-4. **Enquiry form fields:** name (required, one line, ≤100), email (required, valid), phone (optional, digits/+()- only), message (optional, ≤2000). Product ID is sent automatically from the product page. Unknown fields are rejected.
+4. **Enquiry form fields:** name (required, one line, ≤100), email (required, valid, ≤254), phone (optional, digits, spaces and + ( ) -, 6–20 characters), message (optional, ≤2000). Product ID is sent automatically from the product page. Unknown fields are rejected.
 5. **Enquiry email:** plain text to `SALES_INBOX_EMAIL`, reply-to set to the customer, subject `New enquiry: <product title>`. The product must exist (404 otherwise). If sending fails → 503 with a friendly message.
-6. **Fake Store availability:** the whole catalogue (~20 products) is loaded once and cached in memory for 5 minutes; concurrent requests share one fetch; each fetch has a timeout (`FAKE_STORE_TIMEOUT_MS`, default 5000) so a hang becomes a failure instead of a stuck request; if Fake Store fails after a successful load, stale data is served; if it never loaded → 503.
+6. **Fake Store availability:** the whole catalogue (~20 products) is loaded once and cached in memory for 5 minutes (`PRODUCT_CACHE_TTL_MS`); concurrent requests share one fetch; each fetch has a timeout (`FAKE_STORE_TIMEOUT_MS`, default 5000) so a hang becomes a failure instead of a stuck request; if Fake Store fails after a successful load, stale data is served and the next refresh is tried after 30 s (`RETRY_AFTER_FAILURE_MS`); if it never loaded → 503.
 7. Prices are shown as given by Fake Store (USD), labelled as USD. No currency conversion.
 8. No login, cart, checkout, pagination, admin UI or i18n in the PoC.
-9. **Same origin, no CORS:** the browser only ever talks to its own origin. Vite's dev proxy (dev) and nginx (Docker) forward `/api` to the backend, so the backend does not enable CORS.
+9. **Same origin, no CORS:** all API calls go to `/api` on the page's own origin. Vite's dev proxy (dev) and nginx (Docker) forward them to the backend, so the backend does not enable CORS. Product images are the exception: they load from the image URLs the backend returns (Fake Store's image host today).
 
 ## Folder structure
 ```
@@ -50,12 +50,15 @@ backend/src/
   config/ app-config.ts, config.module.ts   (env vars → typed config, APP_CONFIG token)
   products/ product.ts, product.repository.ts (interface + PRODUCT_REPOSITORY token),
             http-fetch.ts (HTTP_FETCH token, so tests fake the network),
+            in-memory-queries.ts (lookups/search shared by in-memory repositories),
+            product-id.params.ts (`:id` validated as text),
             fake-store.repository.ts (+cache, timeout), top-rated.policy.ts, products.service.ts,
             products.controller.ts, search-query.dto.ts, products.module.ts
             [optional] fixture.repository.ts + fixtures/products.json (PRODUCT_SOURCE=fixture)
   enquiries/ create-enquiry.dto.ts, email-sender.ts (interface + EMAIL_SENDER token),
              smtp-email-sender.ts, enquiries.service.ts, enquiries.controller.ts, enquiries.module.ts
-  app.module.ts         (imports Config, Products, Enquiries; health controller)
+  app.module.ts         (imports Config, Products, Enquiries; health.controller.ts)
+  describe-error.ts     (log line with an error's cause chain)
   setup-app.ts          (/api prefix + ValidationPipe, shared with tests)
   main.ts               (bootstrap only; no CORS – see assumption 9)
 backend/test/           (unit + Supertest API tests, Fake Store and SMTP faked)
@@ -68,7 +71,7 @@ frontend/src/
   pages/ HomePage, CategoryPage, SearchPage, ProductPage, NotFoundPage
   styles.css, App.tsx, main.tsx
 frontend/test/
-frontend/nginx.conf     (serves the app, proxies /api to the backend)
+frontend/nginx.conf.template (serves the app, proxies /api to the backend; filled in by envsubst at container start)
 
 .github/workflows/ci.yml
 docker-compose.yml, .env.example, README.md, DECISIONS.md, AI_USAGE.md, CLAUDE.md

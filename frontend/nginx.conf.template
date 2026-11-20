@@ -1,5 +1,6 @@
-# Serves the built React app and forwards /api to the backend, so the browser
-# only ever talks to this one origin (no CORS needed).
+# Serves the built React app and forwards /api to the backend, so all API calls
+# stay on this one origin (no CORS needed). Product images load from the image
+# URLs the backend returns, which the CSP below allows.
 # ${BACKEND_URL} is filled in at container start (default http://backend:3000).
 server {
     listen 8080;
@@ -45,7 +46,8 @@ server {
         try_files $uri =404;
     }
 
-    # Every other path is a client-side route: serve index.html, never cached.
+    # Existing files are served as-is; any other path is a client-side route,
+    # so it gets index.html, never cached.
     location / {
         expires -1;
         try_files $uri /index.html;

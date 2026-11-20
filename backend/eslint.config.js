@@ -35,6 +35,7 @@ const boundaries = [
       selector: "MemberExpression[property.name='rate']",
       message: 'Ranking by rating lives only in TopRatedPolicy (top-rated.policy.ts).',
     },
+    // fake-store.repository.ts only maps Fake Store's raw rating field; it does not rank.
     allowedIn: ['src/products/top-rated.policy.ts', 'src/products/fake-store.repository.ts'],
   },
   {

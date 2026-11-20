@@ -7,7 +7,8 @@ import { APP_CONFIG, type AppConfig } from './config/app-config.js';
 import { setupApp } from './setup-app.js';
 
 /**
- * For running without Docker: load the first .env found (backend/ or repo root).
+ * For running without Docker: load the first .env found in the working directory
+ * or its parent (backend/.env, or the repo-root .env when started from backend/).
  * Variables already set in the environment win. Docker Compose passes env directly.
  */
 function loadLocalEnvFile(): void {
