@@ -92,7 +92,9 @@ export class FakeStoreRepository implements ProductRepository {
       if (!response.ok) throw new Error(`Fake Store answered HTTP ${response.status}`);
       return this.parseCatalogue(await response.json());
     } catch (error) {
-      if (controller.signal.aborted) throw new Error(`Fake Store timed out after ${timeoutMs} ms`);
+      if (controller.signal.aborted) {
+        throw new Error(`Fake Store timed out after ${timeoutMs} ms`, { cause: error });
+      }
       throw error;
     } finally {
       clearTimeout(timer);
