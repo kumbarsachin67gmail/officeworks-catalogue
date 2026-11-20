@@ -11,3 +11,8 @@ Tool: Claude Code (desktop app), model Claude Opus 5.5.
   - Docker was not installed, so `docker compose up`, the reviewer's main run path, could not be tested.
 - **Overrode an AI choice.** Claude installed Colima to avoid needing an admin password and licence acceptance. I preferred Docker Desktop (what most reviewers will have), installed it myself and had Claude remove Colima and its Homebrew docker CLI.
 - **Recommendations kept as recommendations.** claude-code-setup suggested hooks (block private files, tests before commit, Prettier), a `/verify-acceptance` skill, and no new subagents or MCP servers. None applied yet.
+- **Plan assumed Jest; NestJS 12 broke that.** While scaffolding, Claude found Nest 12 ships only as ES modules and that Nest's official starter moved to Vitest. It stopped and asked instead of forcing Jest into ESM mode; I chose Nest 12 + Vitest. CLAUDE.md and PLAN.md updated.
+- **TypeScript 7 skipped.** TypeScript 7 is current, but the Nest 12 CLI pins `~6.0`, so the backend uses 6.0.
+- **Audit finding judged, not auto-fixed.** With Jest installed, `npm audit` flagged a moderate issue in Jest's `glob`. It was dev-only, and `npm audit fix --force` would have downgraded Jest. It went away when Jest was replaced by Vitest; the backend now audits clean.
+- **Checked the tests can fail.** All 68 backend tests passed first time, so Claude broke the code on purpose three times (substring search, no rating tie-break, no stale-cache fallback). Each break made the matching tests fail, which shows they guard real behaviour.
+- **Smoke test against the real Fake Store** (outside the test suite): every endpoint answered as planned, and the enquiry email reached a temporary Mailpit container with reply-to set to the customer.
