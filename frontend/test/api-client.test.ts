@@ -47,7 +47,7 @@ describe('api client', () => {
     expect(url).toBe('/api/enquiries');
     expect(init?.method).toBe('POST');
     expect(init?.headers).toMatchObject({ 'Content-Type': 'application/json' });
-    expect(JSON.parse(String(init?.body))).toEqual({ productId: 3, name: 'Asha', email: 'asha@example.com' });
+    expect(JSON.parse(init?.body as string)).toEqual({ productId: 3, name: 'Asha', email: 'asha@example.com' });
   });
 
   it('shows the backend validation messages for a 400', async () => {

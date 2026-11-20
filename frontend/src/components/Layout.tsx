@@ -1,10 +1,13 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Link, NavLink, Outlet, useNavigate, useSearchParams } from 'react-router';
 import { api } from '../api/client';
 import { useAsync } from '../hooks/useAsync';
 import { categoryPath } from './format';
 
 export function Layout() {
+  const [searchParams] = useSearchParams();
+  const urlTerm = searchParams.get('q') ?? '';
+
   return (
     <>
       <a className="skip-link" href="#main">
@@ -15,7 +18,8 @@ export function Layout() {
           <Link to="/" className="brand">
             Product Catalogue
           </Link>
-          <SearchBar />
+          {/* Keyed by the URL term so the box resets on back/forward or when leaving search. */}
+          <SearchBar key={urlTerm} initialTerm={urlTerm} />
         </div>
         <CategoryNav />
       </header>
@@ -29,20 +33,15 @@ export function Layout() {
   );
 }
 
-function SearchBar() {
+function SearchBar({ initialTerm }: { initialTerm: string }) {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const urlTerm = searchParams.get('q') ?? '';
-  const [term, setTerm] = useState(urlTerm);
-
-  // Keep the box in step with the URL (back/forward, or leaving the search page).
-  useEffect(() => setTerm(urlTerm), [urlTerm]);
+  const [term, setTerm] = useState(initialTerm);
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const trimmed = term.trim();
     if (!trimmed) return;
-    navigate(`/search?q=${encodeURIComponent(trimmed)}`);
+    void navigate(`/search?q=${encodeURIComponent(trimmed)}`);
   }
 
   return (

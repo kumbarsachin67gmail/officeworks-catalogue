@@ -88,7 +88,7 @@ export function EnquiryForm({ productId, productTitle }: { productId: number; pr
     ) : null;
 
   return (
-    <form className="enquiry" onSubmit={handleSubmit} noValidate aria-label={`Enquire about ${productTitle}`}>
+    <form className="enquiry" onSubmit={(event) => void handleSubmit(event)} noValidate aria-label={`Enquire about ${productTitle}`}>
       <div className="field">
         <label htmlFor={`${id}-name`}>Name</label>
         <input {...fieldProps('name')} type="text" autoComplete="name" maxLength={100} required />

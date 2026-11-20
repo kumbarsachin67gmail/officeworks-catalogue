@@ -122,6 +122,17 @@ describe('Search', () => {
     expect(await screen.findByText(/No products match your search/)).toBeInTheDocument();
   });
 
+  it('keeps the term in the box on the results page and clears it after leaving', async () => {
+    mockedApi.searchProducts.mockResolvedValue([cottonJacket]);
+    const user = renderAt('/search?q=jacket');
+
+    expect(screen.getByRole('searchbox', { name: 'Search products' })).toHaveValue('jacket');
+    await user.click(await screen.findByRole('link', { name: 'Product Catalogue' }));
+
+    expect(await screen.findByRole('heading', { name: 'Top rated' })).toBeInTheDocument();
+    expect(screen.getByRole('searchbox', { name: 'Search products' })).toHaveValue('');
+  });
+
   it('does not search for a blank term', async () => {
     const user = renderAt('/');
 
