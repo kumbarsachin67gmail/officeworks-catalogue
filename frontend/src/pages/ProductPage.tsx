@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router';
 import { api, ApiError } from '../api/client';
 import { EnquiryForm } from '../components/EnquiryForm';
 import { categoryPath, formatPrice, formatRating } from '../components/format';
+import { Stars } from '../components/ProductTile';
 import { Status } from '../components/Status';
 import { useAsync } from '../hooks/useAsync';
 
@@ -31,7 +32,10 @@ export function ProductPage() {
             </p>
             <h1>{loaded.title}</h1>
             <p className="product__price">{formatPrice(loaded.price)}</p>
-            <p className="product__rating">{formatRating(loaded.rating.rate, loaded.rating.count)}</p>
+            <p className="product__rating">
+              <Stars rate={loaded.rating.rate} />
+              {formatRating(loaded.rating.rate, loaded.rating.count)}
+            </p>
             <p className="product__description">{loaded.description}</p>
             <EnquirySection productId={loaded.id} productTitle={loaded.title} />
           </div>

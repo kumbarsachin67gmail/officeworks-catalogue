@@ -18,6 +18,9 @@ export function Layout() {
       <header className="header">
         <div className="header__inner">
           <Link to="/" className="brand">
+            <span className="brand__mark" aria-hidden="true">
+              PC
+            </span>
             Product Catalogue
           </Link>
           {/* Keyed by the URL term so the box resets on back/forward or when leaving search. */}
@@ -31,7 +34,10 @@ export function Layout() {
         </ErrorBoundary>
       </main>
       <footer className="footer">
-        <p>Proof of concept. Product data from the Fake Store API.</p>
+        <div className="footer__inner">
+          <p className="footer__brand">Product Catalogue</p>
+          <p>Proof of concept. Product data from the Fake Store API.</p>
+        </div>
       </footer>
     </>
   );

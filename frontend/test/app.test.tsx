@@ -5,7 +5,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppRoutes } from '../src/App';
 import { api, ApiError } from '../src/api/client';
 import type { Product } from '../src/types/product';
-import { backpack, categories, cottonJacket, featured, rainJacket, slimShirt } from './fixtures';
+import { backpack, categories, cottonJacket, featured, makeProduct, rainJacket, slimShirt } from './fixtures';
+
+const allProducts = [...featured, cottonJacket, slimShirt];
 
 /** A promise the test resolves later, to control the order answers arrive in. */
 function deferred<T>() {
@@ -48,6 +50,11 @@ beforeEach(() => {
   vi.resetAllMocks();
   mockedApi.getCategories.mockResolvedValue(categories);
   mockedApi.getFeaturedProducts.mockResolvedValue(featured);
+  // The home page shows a row per category; by default each row has the products of that category.
+  mockedApi.getCategory.mockImplementation(async (category) => {
+    const inCategory = allProducts.filter((product) => product.category === category);
+    return { category, topRated: inCategory.slice(0, 1), others: inCategory.slice(1) };
+  });
   mockedApi.getProduct.mockImplementation(async (id) => {
     const product = [...featured, cottonJacket, slimShirt].find((candidate) => candidate.id === id);
     if (!product) throw new ApiError("Sorry, we couldn't find that.", 404);
@@ -56,25 +63,85 @@ beforeEach(() => {
 });
 
 describe('Home page', () => {
-  it('shows the 5 featured products the owner chose, in order', async () => {
+  it('shows the 5 featured products the owner chose, in order, first on the page', async () => {
     renderAt('/');
 
-    expect(screen.getByRole('heading', { name: 'Top rated' })).toBeInTheDocument();
-    const grid = await within(screen.getByRole('main')).findByRole('list');
+    const topRated = screen.getByRole('region', { name: 'Top rated' });
+    const grid = await within(topRated).findByRole('list');
     const tiles = within(grid).getAllByRole('link');
     expect(tiles).toHaveLength(5);
     expect(tiles.map((tile) => within(tile).getByRole('heading').textContent)).toEqual(featured.map((p) => p.title));
+    // Nothing else comes between the welcome banner and the featured products.
+    const sections = within(screen.getByRole('main')).getAllByRole('region');
+    expect(sections[0]).toHaveAccessibleName('Find what you need, and ask us about it');
+    expect(sections[1]).toBe(topRated);
   });
 
   it('shows a friendly error and can try again', async () => {
     mockedApi.getFeaturedProducts.mockRejectedValueOnce(new ApiError('Products are unavailable right now.', 503));
     const user = renderAt('/');
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Products are unavailable right now.');
-    await user.click(screen.getByRole('button', { name: 'Try again' }));
+    const topRated = screen.getByRole('region', { name: 'Top rated' });
+    expect(await within(topRated).findByRole('alert')).toHaveTextContent('Products are unavailable right now.');
+    await user.click(within(topRated).getByRole('button', { name: 'Try again' }));
 
-    expect(await screen.findAllByRole('link', { name: /Foldsack Backpack/ })).toHaveLength(1);
+    expect(await within(topRated).findAllByRole('link', { name: /Foldsack Backpack/ })).toHaveLength(1);
     expect(mockedApi.getFeaturedProducts).toHaveBeenCalledTimes(2);
+  });
+
+  it('links to every category and shows a few products from each', async () => {
+    const shirts = Array.from({ length: 6 }, (_, index) =>
+      makeProduct({ id: 100 + index, title: `Shirt ${index + 1}`, category: "men's clothing" }),
+    );
+    mockedApi.getCategory.mockImplementation(async (category) => ({
+      category,
+      topRated: category === "men's clothing" ? shirts.slice(0, 2) : [],
+      others: category === "men's clothing" ? shirts.slice(2) : [],
+    }));
+    renderAt('/');
+
+    const byCategory = await screen.findByRole('region', { name: 'Shop by category' });
+    expect(within(byCategory).getAllByRole('link').map((link) => link.getAttribute('href'))).toEqual(
+      categories.map((category) => `/categories/${encodeURIComponent(category)}`),
+    );
+
+    // A row keeps the backend's order (top rated first) and stops at 4 products.
+    const row = screen.getByRole('region', { name: "Popular in men's clothing" });
+    await within(row).findByText('Shirt 1');
+    const titles = within(row)
+      .getAllByRole('heading', { level: 3 })
+      .map((heading) => heading.textContent);
+    expect(titles).toEqual(['Shirt 1', 'Shirt 2', 'Shirt 3', 'Shirt 4']);
+    expect(within(row).getByRole('link', { name: "See all men's clothing →" })).toHaveAttribute(
+      'href',
+      `/categories/${encodeURIComponent("men's clothing")}`,
+    );
+  });
+
+  it('keeps the rest of the page working when one category row fails, and can retry it', async () => {
+    mockedApi.getCategory.mockImplementation(async (category) => {
+      if (category === 'jewelery') throw new ApiError('The catalogue is temporarily unavailable.', 503);
+      return { category, topRated: [], others: allProducts.filter((product) => product.category === category) };
+    });
+    const user = renderAt('/');
+
+    const failedRow = await screen.findByRole('region', { name: 'Popular in jewelery' });
+    expect(await within(failedRow).findByRole('alert')).toHaveTextContent('The catalogue is temporarily unavailable.');
+    const electronics = screen.getByRole('region', { name: 'Popular in electronics' });
+    expect(await within(electronics).findAllByRole('link', { name: /Portable Hard Drive/ })).toHaveLength(1);
+    expect(await within(screen.getByRole('region', { name: 'Top rated' })).findAllByRole('listitem')).toHaveLength(5);
+
+    mockedApi.getCategory.mockResolvedValue({ category: 'jewelery', topRated: [], others: [] });
+    await user.click(within(failedRow).getByRole('button', { name: 'Try again' }));
+    expect(await within(failedRow).findByText('No products in this category yet.')).toBeInTheDocument();
+  });
+
+  it('shows placeholder tiles while products load', async () => {
+    mockedApi.getFeaturedProducts.mockReturnValue(new Promise(() => {}));
+    renderAt('/');
+
+    const topRated = screen.getByRole('region', { name: 'Top rated' });
+    expect(within(topRated).getByRole('status')).toHaveTextContent('Loading featured products…');
   });
 });
 

@@ -1,6 +1,6 @@
 import { useSearchParams } from 'react-router';
 import { api } from '../api/client';
-import { ProductGrid } from '../components/ProductGrid';
+import { GridSkeleton, ProductGrid } from '../components/ProductGrid';
 import { Status } from '../components/Status';
 import { useAsync } from '../hooks/useAsync';
 
@@ -25,7 +25,7 @@ function SearchResults({ term }: { term: string }) {
   return (
     <>
       <h1>Search results for “{term}”</h1>
-      <Status state={results} loadingLabel="Searching…">
+      <Status state={results} loadingLabel="Searching…" placeholder={<GridSkeleton count={4} />}>
         {(products) => (
           <>
             <p className="lead" role="status">
