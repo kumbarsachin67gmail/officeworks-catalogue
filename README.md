@@ -35,7 +35,7 @@ No `.env` file is needed. To change a setting, copy `.env.example` to `.env` and
 
 | # | Criterion | How to check it |
 |---|---|---|
-| 1 | Home page shows the 5 chosen "top rated" products | Open http://localhost:8080. The owner's choice is `FEATURED_PRODUCT_IDS` (default `1,5,9,13,17`) |
+| 1 | Home page shows the 5 chosen "top rated" products | Open http://localhost:8080: the "Top rated" section under the banner. The owner's choice is `FEATURED_PRODUCT_IDS` (default `1,5,9,13,17`). Category rows below it are extra browsing |
 | 2 | Category page shows top rated, then more products | Click a category (e.g. *men's clothing*): "Top rated" first, then "More in this category" |
 | 3 | Search shows only matching products | Type `men` in the search bar and click **Search**: only men's clothing, no women's |
 | 4 | Clicking a tile opens the product page | Click any product tile |

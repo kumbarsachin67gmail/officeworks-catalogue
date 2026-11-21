@@ -7,6 +7,7 @@ The acceptance criteria leave gaps on purpose. This is what I assumed, what I cu
 ### Home page: "I have chosen 5 products to be top rated"
 - The owner's choice is a list of product ids in config, `FEATURED_PRODUCT_IDS` (default `1,5,9,13,17`), shown in that order. It is a config value, not an admin screen, because there is no database or login in the PoC.
 - Ids that don't exist are skipped, and the backend logs one warning, so a typo can't break the home page. Any number of ids works; 5 is the default.
+- The home page also has a welcome banner, category cards and a short row (4 products) per category, so there's more to browse. The owner's chosen products are always the first products on the page. Each category row uses the same `/api/categories/:category` answer as the category page, in the backend's order, so the client doesn't rank anything. If one row fails, only that row shows "Try again".
 
 ### Category page: "top rated products for that category" and "additional products"
 - "Top rated" here means: the owner's chosen products that are in this category come first. The remaining places, up to `CATEGORY_TOP_RATED_COUNT` (default 3), go to the highest customer rating.

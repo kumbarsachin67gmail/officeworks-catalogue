@@ -12,5 +12,6 @@ Times are IST. Split matches what the brief asks for: planning, building, testin
 | 2026-11-20 | ~14:00 | ~14:10 | Testing | End-to-end verification from a fresh clone (Docker and no-Docker), failure cases, 3 fixes |
 | 2026-11-20 | ~14:10 | ~14:28 | Reviewing | AI review pass (6 reviewers), ~20 fixes with tests, 5 rejected/deferred; history rewrite to drop co-author trailers; CLAUDE.md edits |
 | 2026-11-20 | ~14:28 | ~14:35 | Docs | README, DECISIONS.md, AI_USAGE.md (drafted by Claude from the notes, checked against the code) |
+| 2026-11-21 | ~08:00 | ~08:35 | Building + testing | UI refresh: banner, category cards and rows, card hover, stars, loading placeholders, animation; 3 new tests |
 
 Note: the first row includes installing Docker, which is machine setup rather than solution work. Its start time (~11:20) is an estimate from when the session began.
