@@ -78,7 +78,7 @@ Open http://localhost:5173. Vite forwards `/api` to the backend on port 3000, an
 Run these in `backend/` and in `frontend/`:
 
 ```bash
-npm test            # Vitest: backend 102 tests, frontend 31
+npm test            # Vitest: backend 102 tests, frontend 34
 npm run lint        # ESLint, including the architecture rules below
 npm run typecheck   # TypeScript strict
 ```
@@ -137,4 +137,4 @@ notes/         working notes: AI log, time log, end-to-end verification, AI revi
 
 ## Time spent
 
-About 3¼ hours of wall-clock time in one session on 20 Nov 2026, against a 2–3 hour time-box. That includes roughly 30–60 minutes of machine setup (installing Docker and tooling). See the breakdown in [AI_USAGE.md](AI_USAGE.md#time-spent).
+About 3 h 55 m of wall-clock time on 20–21 Nov 2026, against a 2–3 hour time-box. That includes roughly 30–60 minutes of machine setup (installing Docker and tooling) and about 40 minutes of UI polish after the main build. See the breakdown in [AI_USAGE.md](AI_USAGE.md#time-spent).

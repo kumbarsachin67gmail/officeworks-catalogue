@@ -80,7 +80,7 @@ Every change was approved step by step, committed in small commits, and checked 
 
 ## Time spent
 
-All on 20 Nov 2026 (IST). Phases are taken from [notes/time-log.md](notes/time-log.md) and the commit timestamps. Time spent reading and approving each step is included.
+20–21 Nov 2026 (IST). Phases are taken from [notes/time-log.md](notes/time-log.md) and the commit timestamps. Time spent reading and approving each step is included.
 
 | Phase | Time | What |
 |---|---|---|
@@ -89,4 +89,5 @@ All on 20 Nov 2026 (IST). Phases are taken from [notes/time-log.md](notes/time-l
 | Testing | ~10 m (14:00–14:10) | End-to-end verification from a fresh clone, with and without Docker, plus failure cases (3 fixes) |
 | Reviewing | ~20 m (14:10–14:28) | AI review pass, about 20 fixes with tests, CLAUDE.md edits, commit history clean-up |
 | Docs | ~10 m (14:28–14:35) | README, DECISIONS.md, AI_USAGE.md |
-| **Total** | **~3 h 15 m** | Over the 2–3 h time-box, mostly because of machine setup and the verification and review passes |
+| UI polish | ~40 m (20 Nov ~22:25–22:30, 21 Nov ~08:00–08:35) | Sticky header; then a home page banner, category rows, livelier product cards and loading placeholders, with 3 new tests |
+| **Total** | **~3 h 55 m** | Over the 2–3 h time-box, mostly because of machine setup, the verification and review passes, and the UI polish |

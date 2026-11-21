@@ -81,7 +81,7 @@ The brief says the **product data source**, the **look and feel** and the **emai
 - **Config, not code, for anything environment-specific.** Every setting is an env var with a working default, documented in `.env.example` and checked at startup.
 - **Tests that make change safe.**
   - 102 backend tests: unit, contract, and Supertest end to end, including a run with the real Fake Store repository and only the network faked.
-  - 31 frontend tests that drive the real UI, organised by acceptance criterion.
+  - 34 frontend tests that drive the real UI, organised by acceptance criterion.
 - **Ready for AWS.**
   - Both images are non-root. The backend has a health check.
   - nginx resolves the backend through DNS on each request (cached 10 s), so it survives restarts and IP changes.
